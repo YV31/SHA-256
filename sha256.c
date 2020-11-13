@@ -94,6 +94,7 @@ uint32_t *compression_sha256(uint8_t *block, uint32_t *hash)
   hash[5] += f;
   hash[6] += g;
   hash[7] += h;
+
   // }}}
   
   return hash;
@@ -102,12 +103,15 @@ uint32_t *compression_sha256(uint8_t *block, uint32_t *hash)
 uint8_t **preprocessing_sha256(char *message)
 {
   // Message Info {{{
+
   size_t message_len = strlen(message);
   uint64_t message_len_bits = message_len * 8;
   size_t num_of_blocks = NUM_OF_BLOCKS(message_len_bits + 64 + 8);
+
   // }}}
 
   // Padding {{{
+
   uint8_t M[64 * num_of_blocks];
 
   // Clear Message buffer
@@ -125,10 +129,10 @@ uint8_t **preprocessing_sha256(char *message)
   for (size_t i = 0; i < 8; i++) {
     M[(64 * num_of_blocks - 1) - i] = ((0xff << i * 8) & message_len_bits) >> i * 8;
   }
+
   // }}}
 
   // Parsing {{{
-
 
   uint8_t **blocks = (uint8_t **) malloc(10 * sizeof(uint8_t *));
 
@@ -137,7 +141,6 @@ uint8_t **preprocessing_sha256(char *message)
   for (size_t i = 0; i < num_of_blocks; i++) {
     blocks[i] = (uint8_t *) malloc(64 * sizeof(uint8_t));
   }
-
 
   for (size_t i = 0; i < num_of_blocks; i++) {
     for (size_t j = i * 64; j < (i + 1) * 64; j++) {
