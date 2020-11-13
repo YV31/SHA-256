@@ -1,0 +1,16 @@
+[
+    {
+        "arguments": [
+            "clang",
+            "-c",
+            "-Wall",
+            "-Wextra",
+            "-pedantic",
+            "-o",
+            "sha256",
+            "sha256.c"
+        ],
+        "directory": "/home/levy/Documents/SRCs/repos/SHA",
+        "file": "sha256.c"
+    }
+]
