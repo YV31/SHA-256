@@ -13,7 +13,7 @@
 #define SIG1(x) (ROTR(x, 17) ^ ROTR(x, 19) ^ (x >> 10))
 #define USIG0(x) (ROTR(x, 2) ^ ROTR(x, 13) ^ ROTR(x, 22))
 #define USIG1(x) (ROTR(x, 6) ^ ROTR(x, 11) ^ ROTR(x, 25))
-#define NUM_OF_BLOCKS(x) (((x + 511) - ((x + 511) % 512)) / 512)
+#define REQ_BLOCKS(x) (((x + 511) - ((x + 511) % 512)) / 512)
 
 // Constants
 const uint32_t K[] = {
@@ -36,9 +36,10 @@ uint32_t bytes_to_32bits(uint8_t *bytes, uint start)
   return val;
 }
 
-uint32_t *compression_sha256(uint8_t *block, uint32_t *hash)
+uint32_t *computation_sha256(uint8_t *block, uint32_t *hash)
 {
   // Schedule {{{
+
   uint32_t w[64];
 
   // Clear schedule
@@ -46,7 +47,7 @@ uint32_t *compression_sha256(uint8_t *block, uint32_t *hash)
     w[i] = 0L;
   }
 
-  // Add chunk
+  // Add block
   for (uint i = 0; i < 16; i++) {
     w[i] = bytes_to_32bits(block, i * 4);
   }
@@ -59,7 +60,7 @@ uint32_t *compression_sha256(uint8_t *block, uint32_t *hash)
   // }}}
 
   // Compression {{{
-  
+
   // Initialized working variables
   uint32_t a = hash[0];
   uint32_t b = hash[1];
@@ -69,7 +70,7 @@ uint32_t *compression_sha256(uint8_t *block, uint32_t *hash)
   uint32_t f = hash[5];
   uint32_t g = hash[6];
   uint32_t h = hash[7];
-  
+
   // Compression function loop
   for (uint i = 0; i < 64; i++) {
     uint32_t t1 = h + USIG1(e) + CH(e, f, g) + K[i] + w[i];
@@ -84,7 +85,7 @@ uint32_t *compression_sha256(uint8_t *block, uint32_t *hash)
     b = a;
     a = t1 + t2;
   }
-  
+
   // Compute hash values
   hash[0] += a;
   hash[1] += b;
@@ -96,7 +97,7 @@ uint32_t *compression_sha256(uint8_t *block, uint32_t *hash)
   hash[7] += h;
 
   // }}}
-  
+
   return hash;
 }
 
@@ -106,7 +107,7 @@ uint8_t **preprocessing_sha256(char *message)
 
   size_t message_len = strlen(message);
   uint64_t message_len_bits = message_len * 8;
-  size_t num_of_blocks = NUM_OF_BLOCKS(message_len_bits + 64 + 8);
+  size_t num_of_blocks = REQ_BLOCKS(message_len_bits + 64 + 8);
 
   // }}}
 
@@ -149,7 +150,7 @@ uint8_t **preprocessing_sha256(char *message)
   }
 
   // }}}
-  
+
   return blocks;
 }
 
@@ -168,12 +169,12 @@ uint32_t *sha256(char *message)
 
   uint32_t *hash = H;
 
-  size_t num_of_blocks = NUM_OF_BLOCKS((strlen(message) * 8) + 64 + 8);
+  size_t num_of_blocks = REQ_BLOCKS((strlen(message) * 8) + 64 + 8);
 
   uint8_t **blocks = preprocessing_sha256(message);
 
   for (size_t i = 0; i < num_of_blocks; i++) {
-    hash = compression_sha256(blocks[i], hash);
+    hash = computation_sha256(blocks[i], hash);
   }
 
   // Free blocks
